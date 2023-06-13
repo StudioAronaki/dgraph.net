@@ -91,9 +91,9 @@ namespace Dgraph
                 async (dg) =>
                 {
                     await dg.AlterAsync(op, options ?? new CallOptions());
-                    return Results.Ok();
+                    return Result.Ok();
                 },
-                (rpcEx) => Results.Fail(new FluentResults.ExceptionalError(rpcEx))
+                (rpcEx) => Result.Fail(new FluentResults.ExceptionalError(rpcEx))
             );
         }
 
@@ -103,9 +103,9 @@ namespace Dgraph
                 async (dg) =>
                 {
                     var versionResult = await dg.CheckVersionAsync(new Check(), options ?? new CallOptions());
-                    return Results.Ok<string>(versionResult.Tag); ;
+                    return Result.Ok<string>(versionResult.Tag); ;
                 },
-                (rpcEx) => Results.Fail<string>(new FluentResults.ExceptionalError(rpcEx))
+                (rpcEx) => Result.Fail<string>(new FluentResults.ExceptionalError(rpcEx))
             );
         }
 
@@ -115,9 +115,9 @@ namespace Dgraph
                 async (dg) =>
                 {
                     await dg.LoginAsync(lr, options ?? new CallOptions());
-                    return Results.Ok();
+                    return Result.Ok();
                 },
-                (rpcEx) => Results.Fail(new FluentResults.ExceptionalError(rpcEx))
+                (rpcEx) => Result.Fail(new FluentResults.ExceptionalError(rpcEx))
             );
         }
 

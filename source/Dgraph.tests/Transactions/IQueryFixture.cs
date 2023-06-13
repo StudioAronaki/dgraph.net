@@ -53,7 +53,7 @@ namespace Dgraph.tests.Transactions
             client.DgraphExecute(
                 Arg.Any<Func<Api.Dgraph.DgraphClient, Task<Result<Response>>>>(),
                 Arg.Any<Func<RpcException, Result<Response>>>()).Returns(
-                    Results.Ok(response));
+                    Result.Ok(response));
 
             var result = await txn.QueryWithVars(
                 "query",
@@ -70,7 +70,7 @@ namespace Dgraph.tests.Transactions
             client.DgraphExecute(
                 Arg.Any<Func<Api.Dgraph.DgraphClient, Task<Result<Response>>>>(),
                 Arg.Any<Func<RpcException, Result<Response>>>()).Returns(
-                    Results.Fail(new ExceptionalError(new RpcException(new Status(), "Something failed"))));
+                    Result.Fail(new ExceptionalError(new RpcException(new Status(), "Something failed"))));
 
             var result = await (new Transaction(client)).Query("throw");
 
@@ -86,7 +86,7 @@ namespace Dgraph.tests.Transactions
             client.DgraphExecute(
                 Arg.Any<Func<Api.Dgraph.DgraphClient, Task<Result<Response>>>>(),
                 Arg.Any<Func<RpcException, Result<Response>>>()).Returns(
-                    Results.Fail(new ExceptionalError(new RpcException(new Status(), "Something failed"))));
+                    Result.Fail(new ExceptionalError(new RpcException(new Status(), "Something failed"))));
 
             var txn = new Transaction(client);
             var result = await txn.Query("throw");

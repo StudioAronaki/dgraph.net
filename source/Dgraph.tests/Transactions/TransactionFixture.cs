@@ -61,7 +61,7 @@ namespace Dgraph.tests.Transactions
         }
 
         [Test]
-        public void All_ExceptionIfDisposed()
+        public async Task All_ExceptionIfDisposed()
         {
             var client = Substitute.For<IDgraphClientInternal>();
             var txn = new Transaction(client);
@@ -71,7 +71,7 @@ namespace Dgraph.tests.Transactions
 
             foreach (var test in tests)
             {
-                test.Should().Throw<ObjectDisposedException>();
+                await test.Should().ThrowAsync<ObjectDisposedException>();
             }
         }
 
@@ -83,7 +83,7 @@ namespace Dgraph.tests.Transactions
             client.DgraphExecute(
                 Arg.Any<Func<Api.Dgraph.DgraphClient, Task<Result<Response>>>>(),
                 Arg.Any<Func<RpcException, Result<Response>>>()).Returns(
-                    Results.Fail(new ExceptionalError(
+                    Result.Fail(new ExceptionalError(
                         new RpcException(new Status(), "Something failed"))));
             var txn = new Transaction(client);
 
