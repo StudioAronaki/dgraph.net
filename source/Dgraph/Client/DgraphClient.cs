@@ -16,7 +16,7 @@
 
 using System;
 using System.Collections.Generic;
-using Api;
+using Dgraph.Api;
 using Dgraph.Transactions;
 using FluentResults;
 using Grpc.Core;

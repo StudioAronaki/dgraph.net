@@ -27,6 +27,8 @@ import "github.com/dgraph-io/dgo/protos/api.proto";
 import "github.com/dgraph-io/badger/pb/badger.proto";
 import "github.com/gogo/protobuf/gogoproto/gogo.proto";
 
+option csharp_namespace = "Dgraph.Pb";
+
 /* import "gogoproto/gogo.proto"; */
 
 /* option (gogoproto.marshaler_all) = true; */

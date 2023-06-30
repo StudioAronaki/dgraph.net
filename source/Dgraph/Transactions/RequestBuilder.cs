@@ -15,7 +15,7 @@
  */
 
 using System.Linq;
-using Api;
+using Dgraph.Api;
 
 namespace Dgraph.Transactions
 {

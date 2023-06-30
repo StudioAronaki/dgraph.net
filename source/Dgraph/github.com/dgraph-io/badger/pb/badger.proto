@@ -19,6 +19,8 @@ syntax = "proto3";
 
 package badgerpb4;
 
+option csharp_namespace = "Dgraph.Badger";
+
 message KV {
   bytes key = 1;
   bytes value = 2;

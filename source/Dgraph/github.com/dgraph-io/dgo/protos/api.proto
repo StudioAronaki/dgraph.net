@@ -32,6 +32,7 @@ package api;
 
 option java_package = "io.dgraph";
 option java_outer_classname = "DgraphProto";
+option csharp_namespace = "Dgraph.Api";
 
 // Graph response.
 service Dgraph {

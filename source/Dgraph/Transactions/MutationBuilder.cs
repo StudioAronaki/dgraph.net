@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-using Api;
+using Dgraph.Api;
 using Google.Protobuf;
 
 namespace Dgraph.Transactions
