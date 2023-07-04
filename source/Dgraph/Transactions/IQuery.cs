@@ -14,46 +14,40 @@
  * limitations under the License.
  */
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Grpc.Core;
 
-namespace Dgraph.Transactions
-{
+namespace Dgraph.Transactions;
 
-    public enum TransactionState { OK, Committed, Aborted, Error }
+public enum TransactionState { OK, Committed, Aborted, Error }
+
+/// <summary>
+/// Represents read-only 'transactions'.  Unlike ITransactions,
+/// there's no need to discard, so use like:
+///
+/// <code>  
+/// var ro = client.NewReadOnlyTransaction()
+/// var resp = ro.Query(...)
+/// </code>
+/// </summary>
+public interface IQuery
+{
+    TransactionState TransactionState { get; }
 
     /// <summary>
-    /// Represents read-only 'transactions'.  Unlike ITransactions,
-    /// there's no need to discard, so use like:
-    ///
-    /// <code>  
-    /// var ro = client.NewReadOnlyTransaction()
-    /// var resp = ro.Query(...)
-    /// </code>
+    /// Run a query.
     /// </summary>
-    public interface IQuery
+    Task<FluentResults.Result<Response>> Query(string queryString, CallOptions? options = null)
     {
-
-        TransactionState TransactionState { get; }
-
-        /// <summary>
-        /// Run a query.
-        /// </summary>
-        Task<FluentResults.Result<Response>> Query(
-            string queryString,
-            CallOptions? options = null
-        );
-
-        /// <summary>
-        /// Run a query with variables.
-        /// </summary>
-        Task<FluentResults.Result<Response>> QueryWithVars(
-            string queryString,
-            Dictionary<string, string> varMap,
-            CallOptions? options = null
-        );
-
+        return QueryWithVars(queryString, new Dictionary<string, string>(), options);
     }
 
+    /// <summary>
+    /// Run a query with variables.
+    /// </summary>
+    Task<FluentResults.Result<Response>> QueryWithVars(
+        string queryString,
+        Dictionary<string, string> varMap,
+        CallOptions? options = null
+    );
 }
+

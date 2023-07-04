@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-using Dgraph.Api;
 using Google.Protobuf;
 
 namespace Dgraph.Transactions
@@ -23,7 +22,7 @@ namespace Dgraph.Transactions
     public class MutationBuilder
     {
 
-        internal Mutation Mutation = new Mutation();
+        internal Api.Mutation Mutation = new Api.Mutation();
 
         public string SetJson
         {

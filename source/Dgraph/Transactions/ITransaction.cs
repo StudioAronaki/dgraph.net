@@ -14,74 +14,79 @@
  * limitations under the License.
  */
 
-using System;
-using System.Threading.Tasks;
 using Grpc.Core;
 
-namespace Dgraph.Transactions
+namespace Dgraph.Transactions;
+
+/// <summary>
+/// Use transactions like :
+///     
+/// <code>  
+/// using(var txn = client.NewTransaction()) {
+///    txn.mutate
+///    txn.query
+///    txn.mutate
+///    txn.commit
+/// } 
+/// </code>
+///
+/// or
+///
+/// <code>  
+/// var txn = client.NewTransaction()
+/// txn.mutate()
+/// if(...) {
+///    txn.commit();
+/// } else {
+///    txn.discard();
+/// }
+/// </code>
+/// </summary>
+public interface ITransaction : IQuery, IDisposable
 {
+    /// <summary>
+    /// Run a request that may involve multiple mutations.  
+    /// If CommitNow is set on the request, then
+    /// the transaction will commit and can't be used again.
+    /// </summary>
+    Task<FluentResults.Result<Response>> Mutate(
+        RequestBuilder request,
+        CallOptions? options = null
+    );
 
     /// <summary>
-    /// Use transactions like :
-    ///     
-    /// <code>  
-    /// using(var txn = client.NewTransaction()) {
-    ///    txn.mutate
-    ///    txn.query
-    ///    txn.mutate
-    ///    txn.commit
-    /// } 
-    /// </code>
-    ///
-    /// or
-    ///
-    /// <code>  
-    /// var txn = client.NewTransaction()
-    /// txn.mutate()
-    /// if(...) {
-    ///    txn.commit();
-    /// } else {
-    ///    txn.discard();
-    /// }
-    /// </code>
+    /// Convenience method to run a single mutation.  If CommitNow is set,
+    /// the transaction will commit and can't be used again.
     /// </summary>
-    public interface ITransaction : IQuery, IDisposable
+    Task<FluentResults.Result<Response>> Mutate(
+        string? setJson = null,
+        string? deleteJson = null,
+        bool commitNow = false,
+        CallOptions? options = null
+    )
     {
-
-        /// <summary>
-        /// Run a request that may involve multiple mutations.  
-        /// If CommitNow is set on the request, then
-        /// the transaction will commit and can't be used again.
-        /// </summary>
-        Task<FluentResults.Result<Response>> Mutate(
-            RequestBuilder request,
-            CallOptions? options = null
-        );
-
-        /// <summary>
-        /// Convenience method to run a single mutation.  If CommitNow is set,
-        /// the transaction will commit and can't be used again.
-        /// </summary>
-        Task<FluentResults.Result<Response>> Mutate(
-            string setJson = null,
-            string deleteJson = null,
-            bool commitNow = false,
-            CallOptions? options = null
-        );
-
-        /// <summary>
-        /// Discard the transaction.  Any effects are discarded from Dgraph
-        /// and the transaction can't be used again.
-        /// </summary>
-        Task<FluentResults.Result> Discard(CallOptions? options = null);
-
-        /// <summary>
-        /// Commit the transaction.  IF successful, any mutations in this
-        /// transaction are committed in Dgraph.  The transaction can't be 
-        /// used again after a call to Commit.
-        /// </summary>
-        Task<FluentResults.Result> Commit(CallOptions? options = null);
-
+        return Mutate(
+            new RequestBuilder().CommitNow(commitNow).WithMutations(
+                new MutationBuilder
+                {
+                    SetJson = setJson,
+                    DeleteJson = deleteJson
+                }
+            ),
+            options);
     }
+
+    /// <summary>
+    /// Discard the transaction.  Any effects are discarded from Dgraph
+    /// and the transaction can't be used again.
+    /// </summary>
+    Task<FluentResults.Result> Discard(CallOptions? options = null);
+
+    /// <summary>
+    /// Commit the transaction.  IF successful, any mutations in this
+    /// transaction are committed in Dgraph.  The transaction can't be 
+    /// used again after a call to Commit.
+    /// </summary>
+    Task<FluentResults.Result> Commit(CallOptions? options = null);
 
 }

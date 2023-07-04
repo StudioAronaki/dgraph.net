@@ -49,45 +49,126 @@ Each release of this client will support the equivalent Dgraph release. For exam
 
 ### Creating a Client
 
-Make a new client by passing in one or more GRPC channels pointing to alphas.
+An `IDgraphClient` can be created with a list of `GrpcChannel` objects. Connecting to multiple Dgraph servers in the same cluster allows for better distribution of workload.
+
+The following code snippet shows just one connection.
 
 ```c#
-var uri = new Uri("http://127.0.0.1:9080");
+using Dgraph;
+using Grpc.Net.Client;
+
+GrpcChannel channel = GrpcChannel.ForAddress("http://localhost:9080");
+using var dgraphClient = DgraphClient.Create(channel);
+```
+
+The connection can be configured by using `GrpcChannelOptions`.
+
+```c#
+using Grpc.Net.Client;
+
 var options = new GrpcChannelOptions
 {
-    Credentials = ChannelCredentials.Insecure
+    CompressionProviders = <...>, // List of Grpc ICompressionProvider
+    Credentials = Grpc.Core.ChannelCredentials.Create(<...>)
 };
-var client = new DgraphClient(GrpcChannel.ForAddress(uri, options));
+GrpcChannel channel = GrpcChannel.ForAddress("http://localhost:9080", options);
+```
+
+### Login into a namespace
+
+If your server has Access Control Lists enabled (Dgraph v1.1 or above), the client must be logged in for accessing data. Use `Login` to obtain and remember access and refresh JWTs.
+
+```c#
+var result = await dgraphClient.Login("user", "password");
+if (result.IsFailed)
+{
+    // Handle errors
+}
+```
+
+All subsequent operations via the logged in client will send along the stored access token.
+
+If your server additionally has namespaces (Dgraph v21.03 or above), use `LoginIntoNamespace`.
+
+```c#
+var result = await dgraphClient.LoginIntoNamespace("user", "password", 0x10);
+if (result.IsFailed)
+{
+    // Handle errors
+}
+```
+
+### Connecting To Dgraph Cloud
+
+Use `DgraphCloudChannel.Create(ENDPOINT, API_KEY)` to create a GrpcChannel that connects to a Dgraph Cloud backend.
+
+`DgraphCloudChannel.Create()` can accept GraphQL or gRPC URIs from [Dgraph Cloud](https://cloud.dgraph.io/), but it will always connect via gRPC.
+
+```c#
+using Dgraph;
+using Grpc.Net.Client;
+
+string ENDPOINT = "<...>";
+string API_KEY = "<...>";
+
+GrpcChannel channel = DgraphCloudChannel.Create(ENDPOINT, API_KEY);
+using var dgraphClient = DgraphClient.Create(channel);
 ```
 
 
 ### Altering the Database
 
-To set the schema, pass the schema into the `DgraphClient.Alter` function, as seen below:
+To set the schema, create an instance of `Dgraph.Api.Operation` and use the `Alter` endpoint.
 
 ```c#
-var schema = "name: string @index(exact) .";
-var result = client.Alter(new Operation{ Schema = schema });
+using Dgraph;
+
+var operation = new Api.Operation {
+    Schema = "name: string @index(exact) ."
+};
+var result = dgraphClient.Alter(operation);
+if (result.IsFailed)
+{
+    // Handle errors
+}
 ```
+`Operation` contains other fields as well, including `DropAttr` and `DropAll`. `DropAll` is useful if you wish to discard all the data without bringing the instance down. `DropAttr` is used to drop all the data related to a predicate.
 
-The returned result object is based on the FluentResults library. You can check the status using `result.isSuccess` or `result.isFailed`. More information on the result object can be found [here](https://github.com/altmann/FluentResults).
-
-
-### Creating a Transaction
-
-To create a transaction, call `DgraphClient.NewTransaction` method, which returns a
-new `Transaction` object. This operation incurs no network overhead.
-
-It is good practice to call to wrap the `Transaction` in a `using` block, so that the `Transaction.Dispose` function is called after running
-the transaction. 
+Starting in Dgraph version 20.03.0, indexes can be computed in the background. You can set the `RunInBackground` field to `true` like so:
 
 ```c#
-using(var transaction = client.NewTransaction()) {
-    ...
+using Dgraph;
+
+var operation = new Api.Operation {
+    Schema = "name: string @index(exact) .",
+    RunInBackground = true
+};
+var result = dgraphClient.Alter(operation);
+if (result.IsFailed)
+{
+    // Handle errors
 }
 ```
 
-You can also create Read-Only transactions. Read-Only transactions only allow querying, and can be created using `DgraphClient.NewReadOnlyTransaction`.
+### Creating a Transaction
+
+To create a transaction, call the `IDgraphClient.NewTransaction` method, which returns a new `Transaction` object. This operation incurs no network overhead.
+
+To ensure the `Transaction` is properly disposed after it has completed, use the `using` keyword.
+
+```c#
+using var transaction = dgraphClient.NewTransaction();
+var transactionResponse = await transaction.Mutate(...);
+var result = await transaction.Commit();
+```
+
+Read-only transactions can be created by calling the `IDgraphClient.NewReadOnlyTransaction` method. Read-only transactions are useful to increase read speed because they can circumvent the usual consensus protocol. Read-only transactions cannot contain mutations. There is nothing to dispose for a `ReadOnlyTransaction` object, so it does not implement `IDisposable`.
+```c#
+var readOnlyTransaction = dgraphClient.NewReadOnlyTransaction();
+var result = await readOnlyTransaction.Query(...);
+```
+
+
 
 
 ### Running a Mutation
@@ -113,6 +194,77 @@ var transactionResult = await txn.Mutate(new RequestBuilder().WithMutations(new 
 ```
 
 Check out the example in `source/Dgraph.tests.e2e/TransactionTest.cs`.
+
+
+
+
+
+# OLD DOCS
+
+<!-- Make a new client by passing in one or more GRPC channels pointing to alphas.
+
+```c#
+var uri = new Uri("http://127.0.0.1:9080");
+var options = new GrpcChannelOptions
+{
+    Credentials = ChannelCredentials.Insecure
+};
+var client = new DgraphClient(GrpcChannel.ForAddress(uri, options));
+```
+ -->
+<!-- 
+### Altering the Database
+
+To set the schema, pass the schema into the `DgraphClient.Alter` function, as seen below:
+
+```c#
+var schema = "name: string @index(exact) .";
+var result = client.Alter(new Operation{ Schema = schema });
+```
+
+The returned result object is based on the FluentResults library. You can check the status using `result.isSuccess` or `result.isFailed`. More information on the result object can be found [here](https://github.com/altmann/FluentResults). -->
+
+<!-- 
+### Creating a Transaction
+
+To create a transaction, call `DgraphClient.NewTransaction` method, which returns a
+new `Transaction` object. This operation incurs no network overhead.
+
+It is good practice to call to wrap the `Transaction` in a `using` block, so that the `Transaction.Dispose` function is called after running
+the transaction. 
+
+```c#
+using(var transaction = client.NewTransaction()) {
+    ...
+}
+```
+
+You can also create Read-Only transactions. Read-Only transactions only allow querying, and can be created using `DgraphClient.NewReadOnlyTransaction`. -->
+
+
+<!-- ### Running a Mutation
+
+`Transaction.Mutate(RequestBuilder)` runs a mutation. It takes in a json mutation string.
+
+We define a person object to represent a person and serialize it to a json mutation string. In this example, we are using the [JSON.NET](https://www.newtonsoft.com/json) library, but you can use any JSON serialization library you prefer.
+
+```c#
+using(var txn = client.NewTransaction()) {
+    var alice = new Person{ Name = "Alice" };
+    var json = JsonConvert.SerializeObject(alice);
+    
+    var transactionResult = await txn.Mutate(new RequestBuilder().WithMutations(new MutationBuilder{ SetJson = json }));
+}
+```
+
+You can also set mutations using RDF format, if you so prefer, as seen below:
+
+```c#
+var mutation = "_:alice <name> \"Alice\"";
+var transactionResult = await txn.Mutate(new RequestBuilder().WithMutations(new MutationBuilder{ SetNquads = mutation }));
+```
+
+Check out the example in `source/Dgraph.tests.e2e/TransactionTest.cs`. -->
 
 ### Running a Query
 
@@ -206,7 +358,7 @@ var options = new CallOptions(headers: metadata);
 client.Alter(op, options)
 ```
 
-### Connecting To Dgraph Cloud Endpoint
+<!-- ### Connecting To Dgraph Cloud Endpoint
 
 Please use the following snippet to connect to a Dgraph Cloud GraphQL or Dgraph Cloud backend.
 
@@ -214,9 +366,9 @@ Please use the following snippet to connect to a Dgraph Cloud GraphQL or Dgraph 
 ```c#
 var client = new DgraphClient(DgraphCloudChannel.Create("frozen-mango.grpc.eu-central-1.aws.cloud.dgraph.io", "<api-key>"));
 ```
-> Note that you should use the gRPC URI when using the Cloud.
+> Note that you should use the gRPC URI when using the Cloud. -->
 
-### Login to Namespace
+<!-- ### Login to Namespace
 
 Please use the following snippet to connect to a Dgraph Cloud GraphQL or Dgraph Cloud backend.
 
@@ -229,4 +381,4 @@ var lr = new Api.LoginRequest() {
 }
 
 client.Login(lr)
-```
+``` -->
