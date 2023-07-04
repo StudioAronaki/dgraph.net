@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,7 +34,7 @@ namespace Dgraph.tests.Transactions
         public async Task Discard_SetsTransactionStateToAborted()
         {
             var client = Substitute.For<IDgraphClientInternal>();
-            var txn = new Transaction(client);
+            ITransaction txn = new Transaction(client);
             await txn.Discard();
 
             txn.TransactionState.Should().Be(TransactionState.Aborted);
@@ -44,7 +44,7 @@ namespace Dgraph.tests.Transactions
         public async Task Discard_ClientNotReceiveDiscardIfNoMutation()
         {
             var client = Substitute.For<IDgraphClientInternal>();
-            var txn = new Transaction(client);
+            ITransaction txn = new Transaction(client);
             await txn.Discard();
 
             await client.DidNotReceive().DgraphExecute(
@@ -57,11 +57,11 @@ namespace Dgraph.tests.Transactions
         {
             (var client, _) = MinimalClient();
 
-            var txn = new Transaction(client);
+            ITransaction txn = new Transaction(client);
 
             var req = new RequestBuilder().
-                WithMutations(new MutationBuilder { SetJson = "json" });
-            await txn.Mutate(req);
+                WithMutations(new MutationBuilder().SetJson("json"));
+            await txn.Do(req);
             await txn.Discard();
 
             await client.Received().DgraphExecute(
@@ -74,11 +74,11 @@ namespace Dgraph.tests.Transactions
         {
             (var client, _) = MinimalClient();
 
-            var txn = new Transaction(client);
+            ITransaction txn = new Transaction(client);
 
             var req = new RequestBuilder().
-                WithMutations(new MutationBuilder { SetJson = "json" });
-            await txn.Mutate(req);
+                WithMutations(new MutationBuilder().SetJson("json"));
+            await txn.Do(req);
 
             client.DgraphExecute(
                 Arg.Any<Func<Api.Dgraph.DgraphClient, Task<Result>>>(),

@@ -14,14 +14,11 @@
  * limitations under the License.
  */
 
-using System;
-using System.Threading.Tasks;
 using Dgraph.Transactions;
 using FluentResults;
 using Grpc.Core;
 
 namespace Dgraph;
-
 
 /// <summary>
 /// An IDgraphClient is connected to a Dgraph cluster (to one or more Alpha
@@ -74,5 +71,4 @@ public interface IDgraphClient : IDisposable
     /// Returns the Dgraph version string.
     /// </summary>
     Task<FluentResults.Result<string>> CheckVersion(CallOptions? options = null);
-
 }

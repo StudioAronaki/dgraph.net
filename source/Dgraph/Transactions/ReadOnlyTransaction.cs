@@ -20,5 +20,4 @@ internal sealed class ReadOnlyTransaction : TransactionBase
 {
     internal ReadOnlyTransaction(IDgraphClientInternal client, bool bestEffort)
         : base(client, true, bestEffort) { }
-
 }

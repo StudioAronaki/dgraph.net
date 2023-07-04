@@ -19,39 +19,28 @@ using Grpc.Core;
 
 namespace Dgraph.Transactions;
 
-internal class Transaction : TransactionBase, ITransaction
+internal sealed class Transaction : TransactionBase, ITransaction
 {
     private bool HasMutated;
 
     internal Transaction(IDgraphClientInternal client) : base(client, false, false) { }
 
-    async Task<Result<Response>> ITransaction.Mutate(
-        RequestBuilder request,
-        CallOptions? options
-    )
+    async Task<Result<Response>> ITransaction.Do(Api.Request request, CallOptions? options)
     {
         AssertNotDisposed();
-
-        CallOptions opts = options ?? new CallOptions();
 
         if (TransactionState != TransactionState.OK)
         {
             return Result.Fail<Response>(new TransactionNotOK(TransactionState.ToString()));
         }
 
-        var req = request.Request;
-        if (req.Mutations.Count == 0)
-        {
-            return Result.Ok<Response>(new Response(new Api.Response()));
-        }
-
         HasMutated = true;
 
-        req.StartTs = Context.StartTs;
-        req.Hash = Context.Hash;
+        request.StartTs = Context.StartTs;
+        request.Hash = Context.Hash;
 
         var response = await Client.DgraphExecute(
-            async (dg) => Result.Ok<Response>(new Response(await dg.QueryAsync(req, opts))),
+            async (dg) => Result.Ok<Response>(new Response(await dg.QueryAsync(request, options ?? new CallOptions()))),
             (rpcEx) => Result.Fail<Response>(new ExceptionalError(rpcEx))
         );
 
@@ -63,7 +52,7 @@ internal class Transaction : TransactionBase, ITransaction
             return response;
         }
 
-        if (req.CommitNow)
+        if (request.CommitNow)
         {
             TransactionState = TransactionState.Committed;
         }
@@ -71,14 +60,14 @@ internal class Transaction : TransactionBase, ITransaction
         var err = MergeContext(response.Value.DgraphResponse.Txn);
         if (err.IsFailed)
         {
-            // The WithReasons() here will turn this Ok, into a Fail.  So the result 
+            // The WithErrors() here will turn this Ok, into a Fail.  So the result 
             // and an error are in there like the Go lib.  But this can really only
             // occur on an internal Dgraph error, so it's really an error
             // and there's no need to code for cases to dig out the value and the 
             // error - just 
             //   if (...IsFailed) { ...assume mutation failed...}
             // is enough.
-            return Result.Ok<Response>(response.Value).WithReasons(err.Reasons);
+            return Result.Ok<Response>(response.Value).WithErrors(err.Errors);
         }
 
         return Result.Ok<Response>(response.Value);
@@ -109,7 +98,7 @@ internal class Transaction : TransactionBase, ITransaction
             {
                 await dg.CommitOrAbortAsync(
                     Context,
-                    options ?? new CallOptions(null, null, default(CancellationToken)));
+                    options ?? new CallOptions());
                 return Result.Ok();
             },
             (rpcEx) => Result.Fail(new ExceptionalError(rpcEx))
@@ -137,7 +126,7 @@ internal class Transaction : TransactionBase, ITransaction
             {
                 await dg.CommitOrAbortAsync(
                     Context,
-                    options ?? new CallOptions(null, null, default(CancellationToken)));
+                    options ?? new CallOptions());
                 return Result.Ok();
             },
             (rpcEx) => Result.Fail(new ExceptionalError(rpcEx))

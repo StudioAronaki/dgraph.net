@@ -21,13 +21,7 @@ namespace Dgraph.Transactions;
 public enum TransactionState { OK, Committed, Aborted, Error }
 
 /// <summary>
-/// Represents read-only 'transactions'.  Unlike ITransactions,
-/// there's no need to discard, so use like:
-///
-/// <code>  
-/// var ro = client.NewReadOnlyTransaction()
-/// var resp = ro.Query(...)
-/// </code>
+/// A read-only transaction that cannot commit mutations.
 /// </summary>
 public interface IQuery
 {

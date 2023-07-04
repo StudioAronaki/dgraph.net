@@ -16,72 +16,45 @@
 
 using Google.Protobuf;
 
-namespace Dgraph.Transactions
+namespace Dgraph.Transactions;
+
+public class MutationBuilder
 {
+    internal Api.Mutation Mutation = new Api.Mutation();
 
-    public class MutationBuilder
+    public MutationBuilder SetJson(string setJson)
     {
-
-        internal Api.Mutation Mutation = new Api.Mutation();
-
-        public string SetJson
-        {
-            get
-            {
-                return Mutation.SetJson.ToStringUtf8();
-            }
-            set
-            {
-                Mutation.SetJson = ByteString.CopyFromUtf8(value ?? "");
-            }
-        }
-        public string SetNquads
-        {
-            get
-            {
-                return Mutation.SetNquads.ToStringUtf8();
-            }
-            set
-            {
-                Mutation.SetNquads = ByteString.CopyFromUtf8(value ?? "");
-            }
-        }
-        public string DeleteJson
-        {
-            get
-            {
-                return Mutation.DeleteJson.ToStringUtf8();
-            }
-            set
-            {
-                Mutation.DeleteJson = ByteString.CopyFromUtf8(value ?? "");
-            }
-        }
-
-        public string DelNquads
-        {
-            get
-            {
-                return Mutation.DelNquads.ToStringUtf8();
-            }
-            set
-            {
-                Mutation.DelNquads = ByteString.CopyFromUtf8(value ?? "");
-            }
-        }
-
-        public string Cond
-        {
-            get
-            {
-                return Mutation.Cond;
-            }
-            set
-            {
-                Mutation.Cond = value ?? "";
-            }
-        }
-
+        Mutation.SetJson = ByteString.CopyFromUtf8(setJson ?? "");
+        return this;
     }
 
+    public MutationBuilder SetNquads(string setNquads)
+    {
+        Mutation.SetNquads = ByteString.CopyFromUtf8(setNquads ?? "");
+        return this;
+    }
+
+    public MutationBuilder DeleteJson(string deleteJson)
+    {
+        Mutation.DeleteJson = ByteString.CopyFromUtf8(deleteJson ?? "");
+        return this;
+    }
+
+    public MutationBuilder DelNquads(string delNquads)
+    {
+        Mutation.DelNquads = ByteString.CopyFromUtf8(delNquads ?? "");
+        return this;
+    }
+
+    public MutationBuilder Cond(string cond)
+    {
+        Mutation.Cond = cond ?? "";
+        return this;
+    }
+
+    public MutationBuilder CommitNow(bool commitNow = true)
+    {
+        Mutation.CommitNow = commitNow;
+        return this;
+    }
 }

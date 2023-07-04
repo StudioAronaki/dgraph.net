@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 using System;
 using System.Threading.Tasks;
 using Dgraph.Transactions;
@@ -32,7 +32,7 @@ namespace Dgraph.tests.Transactions
         public async Task All_FailIfAlreadyCommitted()
         {
             var client = Substitute.For<IDgraphClientInternal>();
-            var txn = new Transaction(client);
+            ITransaction txn = new Transaction(client);
             await txn.Commit();
 
             var tests = GetAllTestFunctions(txn);
@@ -48,7 +48,7 @@ namespace Dgraph.tests.Transactions
         public async Task All_FailIfDiscarded()
         {
             var client = Substitute.For<IDgraphClientInternal>();
-            var txn = new Transaction(client);
+            ITransaction txn = new Transaction(client);
             await txn.Discard();
 
             var tests = GetAllTestFunctions(txn);
@@ -64,7 +64,7 @@ namespace Dgraph.tests.Transactions
         public async Task All_ExceptionIfDisposed()
         {
             var client = Substitute.For<IDgraphClientInternal>();
-            var txn = new Transaction(client);
+            ITransaction txn = new Transaction(client);
             txn.Dispose();
 
             var tests = GetAllTestFunctions(txn);
@@ -85,11 +85,11 @@ namespace Dgraph.tests.Transactions
                 Arg.Any<Func<RpcException, Result<Response>>>()).Returns(
                     Result.Fail(new ExceptionalError(
                         new RpcException(new Status(), "Something failed"))));
-            var txn = new Transaction(client);
+            ITransaction txn = new Transaction(client);
 
             var req = new RequestBuilder().
-                WithMutations(new MutationBuilder { SetJson = "json" });
-            await txn.Mutate(req);
+                WithMutations(new MutationBuilder().SetJson("json"));
+            await txn.Do(req);
 
             var tests = GetAllTestFunctions(txn);
 

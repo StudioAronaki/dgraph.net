@@ -45,7 +45,7 @@ namespace Dgraph.tests.Transactions
         public async Task Query_PassesBackResult()
         {
             (var client, var response) = MinimalClient();
-            var txn = new Transaction(client);
+            ITransaction txn = new Transaction(client);
 
             response.DgraphResponse.Json = ByteString.CopyFromUtf8("json");
             // ??ByteString.CopyFrom(Encoding.UTF8.GetBytes(json));
@@ -72,7 +72,8 @@ namespace Dgraph.tests.Transactions
                 Arg.Any<Func<RpcException, Result<Response>>>()).Returns(
                     Result.Fail(new ExceptionalError(new RpcException(new Status(), "Something failed"))));
 
-            var result = await (new Transaction(client)).Query("throw");
+            ITransaction txn = new Transaction(client);
+            var result = await txn.Query("throw");
 
             result.IsFailed.Should().Be(true);
             result.Errors.First().Should().BeOfType<ExceptionalError>();
@@ -88,7 +89,7 @@ namespace Dgraph.tests.Transactions
                 Arg.Any<Func<RpcException, Result<Response>>>()).Returns(
                     Result.Fail(new ExceptionalError(new RpcException(new Status(), "Something failed"))));
 
-            var txn = new Transaction(client);
+            ITransaction txn = new Transaction(client);
             var result = await txn.Query("throw");
 
             txn.TransactionState.Should().Be(TransactionState.OK);
@@ -98,7 +99,7 @@ namespace Dgraph.tests.Transactions
         public async Task Query_SuccessDoesntChangeTransactionOKState()
         {
             (var client, var response) = MinimalClient();
-            var txn = new Transaction(client);
+            ITransaction txn = new Transaction(client);
 
             await txn.QueryWithVars(
                 "query",

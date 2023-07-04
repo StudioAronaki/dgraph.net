@@ -16,21 +16,25 @@
 
 namespace Dgraph.Transactions;
 
-
 public class RequestBuilder
 {
     internal Api.Request Request = new Api.Request();
 
-    public string Query
+    public RequestBuilder WithQuery(string query)
     {
-        get => Request.Query;
-        set => Request.Query = value;
-
+        Request.Query = query;
+        return this;
     }
 
     public RequestBuilder WithMutations(params MutationBuilder[] mutations)
     {
-        Request.Mutations.Add(mutations.Select(mb => mb.Mutation));
+        Request.Mutations.Add(mutations.Select(m => m.Mutation));
+        return this;
+    }
+
+    public RequestBuilder WithMutations(params Api.Mutation[] mutations)
+    {
+        Request.Mutations.Add(mutations);
         return this;
     }
 
