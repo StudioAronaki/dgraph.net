@@ -16,6 +16,7 @@
 
 using FluentResults;
 using Grpc.Core;
+using static Dgraph.Api.Request.Types;
 
 namespace Dgraph.Transactions;
 
@@ -37,10 +38,11 @@ internal abstract class TransactionBase : IQuery
         Context = new Api.TxnContext();
     }
 
-    async Task<Result<Response>> IQuery.QueryWithVars(
+    private async Task<Result<Response>> _Query(
         string queryString,
         Dictionary<string, string> varMap,
-        CallOptions? options
+        RespFormat responseFormat,
+        CallOptions? options = null
     )
     {
         AssertNotDisposed();
@@ -59,7 +61,8 @@ internal abstract class TransactionBase : IQuery
                 StartTs = Context.StartTs,
                 Hash = Context.Hash,
                 ReadOnly = ReadOnly,
-                BestEffort = BestEffort
+                BestEffort = BestEffort,
+                RespFormat = responseFormat
             };
             request.Vars.Add(varMap);
 
@@ -94,6 +97,24 @@ internal abstract class TransactionBase : IQuery
         {
             return Result.Fail<Response>(new ExceptionalError(ex));
         }
+    }
+
+    Task<Result<Response>> IQuery.QueryWithVars(
+        string queryString,
+        Dictionary<string, string> varMap,
+        CallOptions? options
+    )
+    {
+        return _Query(queryString, varMap, RespFormat.Json, options);
+    }
+
+    Task<Result<Response>> IQuery.QueryRDFWithVars(
+        string queryString,
+        Dictionary<string, string> varMap,
+        Grpc.Core.CallOptions? options
+    )
+    {
+        return _Query(queryString, varMap, RespFormat.Rdf, options);
     }
 
     protected Result MergeContext(Api.TxnContext srcContext)

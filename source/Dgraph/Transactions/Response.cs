@@ -32,5 +32,7 @@ public class Response
 
     public string Json => DgraphResponse.Json.ToStringUtf8();
 
+    public string Rdf => DgraphResponse.Rdf.ToStringUtf8();
+
     public Dictionary<string, string> Uids => _Uids.Value;
 }

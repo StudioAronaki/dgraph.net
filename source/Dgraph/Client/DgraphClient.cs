@@ -63,7 +63,7 @@ public class DgraphClient : IDgraphClient, IDgraphClientInternal
         );
     }
 
-    Task<FluentResults.Result> IDgraphClient.Alter(Api.Operation op, CallOptions? options)
+    Task<Result> IDgraphClient.Alter(Api.Operation op, CallOptions? options)
     {
         return DgraphExecute(
             async (dg) =>
@@ -71,7 +71,7 @@ public class DgraphClient : IDgraphClient, IDgraphClientInternal
                 await dg.AlterAsync(op, options ?? new CallOptions());
                 return Result.Ok();
             },
-            (rpcEx) => Result.Fail(new FluentResults.ExceptionalError(rpcEx))
+            (rpcEx) => Result.Fail(new ExceptionalError(rpcEx))
         );
     }
 
@@ -113,7 +113,7 @@ public class DgraphClient : IDgraphClient, IDgraphClientInternal
         return next;
     }
 
-    public async Task<FluentResults.Result<string>> CheckVersion(CallOptions? options = null)
+    public async Task<Result<string>> CheckVersion(CallOptions? options = null)
     {
         return await DgraphExecute(
             async (dg) =>
@@ -121,7 +121,7 @@ public class DgraphClient : IDgraphClient, IDgraphClientInternal
                 var versionResult = await dg.CheckVersionAsync(new Check(), options ?? new CallOptions());
                 return Result.Ok<string>(versionResult.Tag); ;
             },
-            (rpcEx) => Result.Fail<string>(new FluentResults.ExceptionalError(rpcEx))
+            (rpcEx) => Result.Fail<string>(new ExceptionalError(rpcEx))
         );
     }
 

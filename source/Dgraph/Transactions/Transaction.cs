@@ -29,6 +29,11 @@ internal sealed class Transaction : TransactionBase, ITransaction
     {
         AssertNotDisposed();
 
+        if (string.IsNullOrWhiteSpace(request.Query) && request.Mutations.Count == 0)
+        {
+            return Result.Ok(new Response(new Api.Response()));
+        }
+
         if (TransactionState != TransactionState.OK)
         {
             return Result.Fail<Response>(new TransactionNotOK(TransactionState.ToString()));
@@ -38,6 +43,8 @@ internal sealed class Transaction : TransactionBase, ITransaction
 
         request.StartTs = Context.StartTs;
         request.Hash = Context.Hash;
+        request.BestEffort = BestEffort;
+        request.ReadOnly = ReadOnly;
 
         var response = await Client.DgraphExecute(
             async (dg) => Result.Ok<Response>(new Response(await dg.QueryAsync(request, options ?? new CallOptions()))),

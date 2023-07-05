@@ -16,7 +16,7 @@
 
 using Google.Protobuf;
 
-namespace Dgraph.Transactions;
+namespace Dgraph;
 
 public class MutationBuilder
 {

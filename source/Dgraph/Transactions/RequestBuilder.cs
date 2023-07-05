@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-namespace Dgraph.Transactions;
+namespace Dgraph;
 
 public class RequestBuilder
 {
@@ -23,6 +23,12 @@ public class RequestBuilder
     public RequestBuilder WithQuery(string query)
     {
         Request.Query = query;
+        return this;
+    }
+
+    public RequestBuilder WithVars(Dictionary<string, string> varMap)
+    {
+        Request.Vars.Add(varMap);
         return this;
     }
 
