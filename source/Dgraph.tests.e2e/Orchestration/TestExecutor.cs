@@ -13,47 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace Dgraph.tests.e2e.Orchestration
+namespace Dgraph.tests.e2e.Orchestration;
+
+public class TestExecutor
 {
-    public class TestExecutor
+    public int TestsRun = 0;
+    public int TestsFailed = 0;
+    public IReadOnlyList<Exception> Exceptions => _Exceptions;
+    private List<Exception> _Exceptions = new List<Exception>();
+
+    private readonly TestFinder TestFinder;
+    private readonly DgraphClientFactory ClientFactory;
+
+    public TestExecutor(TestFinder testFinder, DgraphClientFactory clientFactory)
     {
-        public int TestsRun = 0;
-        public int TestsFailed = 0;
-        public IReadOnlyList<Exception> Exceptions => _Exceptions;
-        private List<Exception> _Exceptions = new List<Exception>();
+        TestFinder = testFinder;
+        ClientFactory = clientFactory;
+    }
 
-        private readonly TestFinder TestFinder;
-        private readonly DgraphClientFactory ClientFactory;
-
-        public TestExecutor(TestFinder testFinder, DgraphClientFactory clientFactory)
+    public async Task ExecuteAll(IEnumerable<string> tests)
+    {
+        foreach (var test in TestFinder.FindTests(tests))
         {
-            TestFinder = testFinder;
-            ClientFactory = clientFactory;
-        }
-
-        public async Task ExecuteAll(IEnumerable<string> tests)
-        {
-            foreach (var test in TestFinder.FindTests(tests))
+            try
             {
-                try
-                {
-                    TestsRun++;
-                    await test.Setup();
-                    await test.Test();
-                    await test.TearDown();
-                }
-                catch (Exception ex)
-                {
-                    TestsFailed++;
-                    _Exceptions.Add(ex);
-                }
+                TestsRun++;
+                await test.Setup();
+                await test.Test();
+                await test.TearDown();
+            }
+            catch (Exception ex)
+            {
+                TestsFailed++;
+                _Exceptions.Add(ex);
             }
         }
-
     }
+
 }
