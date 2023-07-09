@@ -26,7 +26,6 @@ using NUnit.Framework;
 
 namespace Dgraph.tests.Transactions
 {
-
     public class DiscardFixture : TransactionFixtureBase
     {
 

@@ -26,7 +26,6 @@ namespace Dgraph.tests.Transactions
 {
     public class TransactionFixtureBase
     {
-
         internal (IDgraphClientInternal, Response) MinimalClient()
         {
             var client = Substitute.For<IDgraphClientInternal>();

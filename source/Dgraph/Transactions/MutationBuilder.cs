@@ -16,45 +16,46 @@
 
 using Google.Protobuf;
 
-namespace Dgraph;
-
-public class MutationBuilder
+namespace Dgraph
 {
-    internal Api.Mutation Mutation = new Api.Mutation();
-
-    public MutationBuilder SetJson(string setJson)
+    public class MutationBuilder
     {
-        Mutation.SetJson = ByteString.CopyFromUtf8(setJson ?? "");
-        return this;
-    }
+        internal Api.Mutation Mutation = new Api.Mutation();
 
-    public MutationBuilder SetNquads(string setNquads)
-    {
-        Mutation.SetNquads = ByteString.CopyFromUtf8(setNquads ?? "");
-        return this;
-    }
+        public MutationBuilder SetJson(string setJson)
+        {
+            Mutation.SetJson = ByteString.CopyFromUtf8(setJson ?? "");
+            return this;
+        }
 
-    public MutationBuilder DeleteJson(string deleteJson)
-    {
-        Mutation.DeleteJson = ByteString.CopyFromUtf8(deleteJson ?? "");
-        return this;
-    }
+        public MutationBuilder SetNquads(string setNquads)
+        {
+            Mutation.SetNquads = ByteString.CopyFromUtf8(setNquads ?? "");
+            return this;
+        }
 
-    public MutationBuilder DelNquads(string delNquads)
-    {
-        Mutation.DelNquads = ByteString.CopyFromUtf8(delNquads ?? "");
-        return this;
-    }
+        public MutationBuilder DeleteJson(string deleteJson)
+        {
+            Mutation.DeleteJson = ByteString.CopyFromUtf8(deleteJson ?? "");
+            return this;
+        }
 
-    public MutationBuilder Cond(string cond)
-    {
-        Mutation.Cond = cond ?? "";
-        return this;
-    }
+        public MutationBuilder DelNquads(string delNquads)
+        {
+            Mutation.DelNquads = ByteString.CopyFromUtf8(delNquads ?? "");
+            return this;
+        }
 
-    public MutationBuilder CommitNow(bool commitNow = true)
-    {
-        Mutation.CommitNow = commitNow;
-        return this;
+        public MutationBuilder Cond(string cond)
+        {
+            Mutation.Cond = cond ?? "";
+            return this;
+        }
+
+        public MutationBuilder CommitNow(bool commitNow = true)
+        {
+            Mutation.CommitNow = commitNow;
+            return this;
+        }
     }
 }

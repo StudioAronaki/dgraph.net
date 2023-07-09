@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-namespace Dgraph.Transactions;
-
-internal sealed class ReadOnlyTransaction : TransactionBase
+namespace Dgraph.Transactions
 {
-    internal ReadOnlyTransaction(IDgraphClientInternal client, bool bestEffort)
-        : base(client, true, bestEffort) { }
+    internal sealed class ReadOnlyTransaction : TransactionBase
+    {
+        internal ReadOnlyTransaction(IDgraphClientInternal client, bool bestEffort)
+            : base(client, true, bestEffort) { }
+    }
 }

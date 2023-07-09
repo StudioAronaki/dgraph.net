@@ -23,78 +23,79 @@ using FluentResults;
 using Microsoft.Extensions.FileProviders;
 using Serilog;
 
-namespace Dgraph.tests.e2e.Tests;
-
-public abstract class DgraphDotNetE2ETest
+namespace Dgraph.tests.e2e.Tests
 {
-    protected readonly DgraphClientFactory ClientFactory;
-
-    protected readonly Assent.Configuration AssentConfiguration;
-
-    private readonly IFileProvider EmbeddedProvider;
-
-    public DgraphDotNetE2ETest(DgraphClientFactory clientFactory)
+    public abstract class DgraphDotNetE2ETest
     {
-        ClientFactory = clientFactory;
+        protected readonly DgraphClientFactory ClientFactory;
 
-        AssentConfiguration = new Assent.Configuration()
-            .UsingNamer(new SubdirectoryNamer("Approved"))
-            .UsingReporter((received, approved) =>
-            {
-                Log.Warning("Expected {received}, got {approved}", received, approved);
-            });
-        // FIXME: .UsingSanitiser(...) might want to add this to remove versions etc
-        // FIXME: when I add this to a build pipeline it needs this turned off when running on the build server
-        // .SetInteractive(...);
+        protected readonly Assent.Configuration AssentConfiguration;
 
-        EmbeddedProvider = new EmbeddedFileProvider(Assembly.GetAssembly(typeof(DgraphDotNetE2ETest)), "Dgraph.tests.e2e.Tests.Data");
-    }
+        private readonly IFileProvider EmbeddedProvider;
 
-    public async virtual Task Setup()
-    {
-        using (var client = await ClientFactory.GetDgraphClient())
+        public DgraphDotNetE2ETest(DgraphClientFactory clientFactory)
         {
-            var result = await client.Alter(
-                new Api.Operation { DropAll = true });
+            ClientFactory = clientFactory;
+
+            AssentConfiguration = new Assent.Configuration()
+                .UsingNamer(new SubdirectoryNamer("Approved"))
+                .UsingReporter((received, approved) =>
+                {
+                    Log.Warning("Expected {received}, got {approved}", received, approved);
+                });
+            // FIXME: .UsingSanitiser(...) might want to add this to remove versions etc
+            // FIXME: when I add this to a build pipeline it needs this turned off when running on the build server
+            // .SetInteractive(...);
+
+            EmbeddedProvider = new EmbeddedFileProvider(Assembly.GetAssembly(typeof(DgraphDotNetE2ETest)), "Dgraph.tests.e2e.Tests.Data");
+        }
+
+        public async virtual Task Setup()
+        {
+            using (var client = await ClientFactory.GetDgraphClient())
+            {
+                var result = await client.Alter(
+                    new Api.Operation { DropAll = true });
+                if (result.IsFailed)
+                {
+                    throw new DgraphDotNetTestFailure("Failed to clean database in test setup", result);
+                }
+            }
+        }
+
+        public abstract Task Test();
+
+        public async virtual Task TearDown()
+        {
+            using (var client = await ClientFactory.GetDgraphClient())
+            {
+                var result = await client.Alter(
+                    new Api.Operation { DropAll = true });
+                if (result.IsFailed)
+                {
+                    throw new DgraphDotNetTestFailure("Failed to clean database in test setup", result);
+                }
+            }
+        }
+
+        protected string ReadEmbeddedFile(string filename)
+        {
+            using (var stream = EmbeddedProvider.GetFileInfo(filename).CreateReadStream())
+            {
+                using (var reader = new StreamReader(stream, Encoding.UTF8))
+                {
+                    return reader.ReadToEnd();
+                }
+            }
+        }
+
+        protected void AssertResultIsSuccess(ResultBase result, string msg = null)
+        {
             if (result.IsFailed)
             {
-                throw new DgraphDotNetTestFailure("Failed to clean database in test setup", result);
+                throw new DgraphDotNetTestFailure(msg ?? "Expected success result, but got failed", result);
             }
         }
+
     }
-
-    public abstract Task Test();
-
-    public async virtual Task TearDown()
-    {
-        using (var client = await ClientFactory.GetDgraphClient())
-        {
-            var result = await client.Alter(
-                new Api.Operation { DropAll = true });
-            if (result.IsFailed)
-            {
-                throw new DgraphDotNetTestFailure("Failed to clean database in test setup", result);
-            }
-        }
-    }
-
-    protected string ReadEmbeddedFile(string filename)
-    {
-        using (var stream = EmbeddedProvider.GetFileInfo(filename).CreateReadStream())
-        {
-            using (var reader = new StreamReader(stream, Encoding.UTF8))
-            {
-                return reader.ReadToEnd();
-            }
-        }
-    }
-
-    protected void AssertResultIsSuccess(ResultBase result, string msg = null)
-    {
-        if (result.IsFailed)
-        {
-            throw new DgraphDotNetTestFailure(msg ?? "Expected success result, but got failed", result);
-        }
-    }
-
 }

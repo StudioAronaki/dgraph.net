@@ -14,39 +14,40 @@
  * limitations under the License.
  */
 
-namespace Dgraph;
-
-public class RequestBuilder
+namespace Dgraph
 {
-    internal Api.Request Request = new Api.Request();
-
-    public RequestBuilder WithQuery(string query)
+    public class RequestBuilder
     {
-        Request.Query = query;
-        return this;
-    }
+        internal Api.Request Request = new Api.Request();
 
-    public RequestBuilder WithVars(Dictionary<string, string> varMap)
-    {
-        Request.Vars.Add(varMap);
-        return this;
-    }
+        public RequestBuilder WithQuery(string query)
+        {
+            Request.Query = query;
+            return this;
+        }
 
-    public RequestBuilder WithMutations(params MutationBuilder[] mutations)
-    {
-        Request.Mutations.Add(mutations.Select(m => m.Mutation));
-        return this;
-    }
+        public RequestBuilder WithVars(Dictionary<string, string> varMap)
+        {
+            Request.Vars.Add(varMap);
+            return this;
+        }
 
-    public RequestBuilder WithMutations(params Api.Mutation[] mutations)
-    {
-        Request.Mutations.Add(mutations);
-        return this;
-    }
+        public RequestBuilder WithMutations(params MutationBuilder[] mutations)
+        {
+            Request.Mutations.Add(mutations.Select(m => m.Mutation));
+            return this;
+        }
 
-    public RequestBuilder CommitNow(bool commitNow = true)
-    {
-        Request.CommitNow = commitNow;
-        return this;
+        public RequestBuilder WithMutations(params Api.Mutation[] mutations)
+        {
+            Request.Mutations.Add(mutations);
+            return this;
+        }
+
+        public RequestBuilder CommitNow(bool commitNow = true)
+        {
+            Request.CommitNow = commitNow;
+            return this;
+        }
     }
 }

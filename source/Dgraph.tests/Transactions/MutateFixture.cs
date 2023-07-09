@@ -28,10 +28,8 @@ using NUnit.Framework;
 
 namespace Dgraph.tests.Transactions
 {
-
     public class MutateFixture : TransactionFixtureBase
     {
-
         [Test]
         public async Task Mutate_EmptyMutationDoesNothing()
         {

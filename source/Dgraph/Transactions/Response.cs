@@ -14,25 +14,26 @@
  * limitations under the License.
  */
 
-namespace Dgraph.Transactions;
-
-public class Response
+namespace Dgraph.Transactions
 {
-    public readonly Api.Response DgraphResponse;
-
-    private Lazy<Dictionary<string, string>> _Uids;
-
-    internal Response(Api.Response dgraphResponse)
+    public class Response
     {
-        DgraphResponse = dgraphResponse;
+        public readonly Api.Response DgraphResponse;
 
-        _Uids = new Lazy<Dictionary<string, string>>(
-            () => new Dictionary<string, string>(DgraphResponse.Uids));
+        private Lazy<Dictionary<string, string>> _Uids;
+
+        internal Response(Api.Response dgraphResponse)
+        {
+            DgraphResponse = dgraphResponse;
+
+            _Uids = new Lazy<Dictionary<string, string>>(
+                () => new Dictionary<string, string>(DgraphResponse.Uids));
+        }
+
+        public string Json => DgraphResponse.Json.ToStringUtf8();
+
+        public string Rdf => DgraphResponse.Rdf.ToStringUtf8();
+
+        public Dictionary<string, string> Uids => _Uids.Value;
     }
-
-    public string Json => DgraphResponse.Json.ToStringUtf8();
-
-    public string Rdf => DgraphResponse.Rdf.ToStringUtf8();
-
-    public Dictionary<string, string> Uids => _Uids.Value;
 }

@@ -18,130 +18,130 @@ using FluentResults;
 using Grpc.Core;
 using static Dgraph.Api.Request.Types;
 
-namespace Dgraph.Transactions;
-
-internal abstract class TransactionBase : IQuery
+namespace Dgraph.Transactions
 {
-    TransactionState IQuery.TransactionState => TransactionState;
-    protected internal TransactionState TransactionState;
-    protected internal readonly IDgraphClientInternal Client;
-    protected internal readonly Api.TxnContext Context;
-    protected internal readonly bool ReadOnly;
-    protected internal readonly bool BestEffort;
-
-    protected internal TransactionBase(IDgraphClientInternal client, bool readOnly, bool bestEffort)
+    internal abstract class TransactionBase : IQuery
     {
-        Client = client;
-        ReadOnly = readOnly;
-        BestEffort = bestEffort;
-        TransactionState = TransactionState.OK;
-        Context = new Api.TxnContext();
-    }
+        TransactionState IQuery.TransactionState => TransactionState;
+        protected internal TransactionState TransactionState;
+        protected internal readonly IDgraphClientInternal Client;
+        protected internal readonly Api.TxnContext Context;
+        protected internal readonly bool ReadOnly;
+        protected internal readonly bool BestEffort;
 
-    private async Task<Result<Response>> _Query(
-        string queryString,
-        Dictionary<string, string> varMap,
-        RespFormat responseFormat,
-        CallOptions? options = null
-    )
-    {
-        AssertNotDisposed();
-
-        if (TransactionState != TransactionState.OK)
+        protected internal TransactionBase(IDgraphClientInternal client, bool readOnly, bool bestEffort)
         {
-            return Result.Fail<Response>(
-                new TransactionNotOK(TransactionState.ToString()));
+            Client = client;
+            ReadOnly = readOnly;
+            BestEffort = bestEffort;
+            TransactionState = TransactionState.OK;
+            Context = new Api.TxnContext();
         }
 
-        try
+        private async Task<Result<Response>> _Query(
+            string queryString,
+            Dictionary<string, string> varMap,
+            RespFormat responseFormat,
+            CallOptions? options = null
+        )
         {
-            Api.Request request = new Api.Request
-            {
-                Query = queryString,
-                StartTs = Context.StartTs,
-                Hash = Context.Hash,
-                ReadOnly = ReadOnly,
-                BestEffort = BestEffort,
-                RespFormat = responseFormat
-            };
-            request.Vars.Add(varMap);
+            AssertNotDisposed();
 
-            var response = await Client.DgraphExecute(
-                async (dg) =>
-                    Result.Ok<Response>(
-                        new Response(await dg.QueryAsync(
-                            request,
-                            options ?? new CallOptions())
-                    )),
-                (rpcEx) => Result.Fail<Response>(new ExceptionalError(rpcEx))
-            );
-
-            if (response.IsFailed)
+            if (TransactionState != TransactionState.OK)
             {
-                return response;
+                return Result.Fail<Response>(
+                    new TransactionNotOK(TransactionState.ToString()));
             }
 
-            var err = MergeContext(response.Value.DgraphResponse.Txn);
-
-            if (err.IsSuccess)
+            try
             {
-                return response;
-            }
-            else
-            {
-                return err.ToResult<Response>();
-            }
+                Api.Request request = new Api.Request
+                {
+                    Query = queryString,
+                    StartTs = Context.StartTs,
+                    Hash = Context.Hash,
+                    ReadOnly = ReadOnly,
+                    BestEffort = BestEffort,
+                    RespFormat = responseFormat
+                };
+                request.Vars.Add(varMap);
 
+                var response = await Client.DgraphExecute(
+                    async (dg) =>
+                        Result.Ok<Response>(
+                            new Response(await dg.QueryAsync(
+                                request,
+                                options ?? new CallOptions())
+                        )),
+                    (rpcEx) => Result.Fail<Response>(new ExceptionalError(rpcEx))
+                );
+
+                if (response.IsFailed)
+                {
+                    return response;
+                }
+
+                var err = MergeContext(response.Value.DgraphResponse.Txn);
+
+                if (err.IsSuccess)
+                {
+                    return response;
+                }
+                else
+                {
+                    return err.ToResult<Response>();
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return Result.Fail<Response>(new ExceptionalError(ex));
+            }
         }
-        catch (Exception ex)
+
+        Task<Result<Response>> IQuery.QueryWithVars(
+            string queryString,
+            Dictionary<string, string> varMap,
+            CallOptions? options
+        )
         {
-            return Result.Fail<Response>(new ExceptionalError(ex));
+            return _Query(queryString, varMap, RespFormat.Json, options);
         }
-    }
 
-    Task<Result<Response>> IQuery.QueryWithVars(
-        string queryString,
-        Dictionary<string, string> varMap,
-        CallOptions? options
-    )
-    {
-        return _Query(queryString, varMap, RespFormat.Json, options);
-    }
-
-    Task<Result<Response>> IQuery.QueryRDFWithVars(
-        string queryString,
-        Dictionary<string, string> varMap,
-        Grpc.Core.CallOptions? options
-    )
-    {
-        return _Query(queryString, varMap, RespFormat.Rdf, options);
-    }
-
-    protected Result MergeContext(Api.TxnContext srcContext)
-    {
-        if (srcContext == null)
+        Task<Result<Response>> IQuery.QueryRDFWithVars(
+            string queryString,
+            Dictionary<string, string> varMap,
+            Grpc.Core.CallOptions? options
+        )
         {
+            return _Query(queryString, varMap, RespFormat.Rdf, options);
+        }
+
+        protected Result MergeContext(Api.TxnContext srcContext)
+        {
+            if (srcContext == null)
+            {
+                return Result.Ok();
+            }
+
+            if (Context.StartTs == 0)
+            {
+                Context.StartTs = srcContext.StartTs;
+            }
+
+            if (Context.StartTs != srcContext.StartTs)
+            {
+                return Result.Fail(new StartTsMismatch());
+            }
+
+            Context.Hash = srcContext.Hash;
+
+            Context.Keys.Add(srcContext.Keys);
+            Context.Preds.Add(srcContext.Preds);
+
             return Result.Ok();
         }
 
-        if (Context.StartTs == 0)
-        {
-            Context.StartTs = srcContext.StartTs;
-        }
-
-        if (Context.StartTs != srcContext.StartTs)
-        {
-            return Result.Fail(new StartTsMismatch());
-        }
-
-        Context.Hash = srcContext.Hash;
-
-        Context.Keys.Add(srcContext.Keys);
-        Context.Preds.Add(srcContext.Preds);
-
-        return Result.Ok();
+        protected internal virtual void AssertNotDisposed() { }
     }
-
-    protected internal virtual void AssertNotDisposed() { }
 }
-

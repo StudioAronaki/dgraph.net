@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-using Dgraph.Transactions;
 using FluentAssertions;
 using Google.Protobuf;
 using NUnit.Framework;
