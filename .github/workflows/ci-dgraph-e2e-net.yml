@@ -4,17 +4,9 @@ on:
   push:
     branches: 
     - master
-    - dev
   pull_request:
-    types:
-    - opened
-    - reopened
-    - synchronize
-    - ready_for_review
     branches: 
     - master
-    - dev
-  workflow_dispatch:
 
 defaults:
   run:
@@ -40,11 +32,11 @@ jobs:
         docker pull dgraph/standalone:latest
         docker run --name dgraph -d -p "8080:8080" -p "9080:9080" -v dgraph_data:/dgraph dgraph/standalone:latest
 
-    - name: Restore dependencies
+    - name: dotnet restore
       run: dotnet restore
 
-    - name: Build
+    - name: dotnet build
       run: dotnet build --configuration Release --no-restore
 
-    - name: Test
+    - name: dotnet run
       run: dotnet run --no-restore
