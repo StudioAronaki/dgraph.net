@@ -28,7 +28,10 @@ namespace Dgraph
 
         public RequestBuilder WithVars(Dictionary<string, string> varMap)
         {
-            Request.Vars.Add(varMap);
+            if (varMap is not null)
+            {
+                Request.Vars.Add(varMap);
+            }
             return this;
         }
 

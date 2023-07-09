@@ -86,13 +86,13 @@ namespace Dgraph
         ITransaction IDgraphClient.NewTransaction()
         {
             AssertNotDisposed();
-            return new Transaction(this);
+            return new Transaction(client: this);
         }
 
         IQuery IDgraphClient.NewReadOnlyTransaction(bool bestEffort)
         {
             AssertNotDisposed();
-            return new Query(this, true, bestEffort);
+            return new Transaction(client: this, readOnly: true, bestEffort: bestEffort);
         }
 
         #endregion

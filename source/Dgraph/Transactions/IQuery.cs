@@ -19,7 +19,13 @@ using Grpc.Core;
 
 namespace Dgraph.Transactions
 {
-    public enum TransactionState { OK, Committed, Aborted, Error }
+    public enum TransactionState
+    {
+        OK,
+        Committed,
+        Aborted,
+        Error
+    }
 
     /// <summary>
     /// A read-only transaction that cannot commit mutations.

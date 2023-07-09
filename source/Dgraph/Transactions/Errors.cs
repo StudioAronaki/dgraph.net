@@ -24,6 +24,11 @@ namespace Dgraph.Transactions
             : base("Cannot perform action when transaction is in state " + state) { }
     }
 
+    public class TransactionReadOnly : Error
+    {
+        internal TransactionReadOnly() : base("Readonly transaction cannot run mutations or be committed") { }
+    }
+
     public class StartTsMismatch : Error
     {
         internal StartTsMismatch() : base("StartTs mismatch") { }
