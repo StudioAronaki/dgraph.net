@@ -19,7 +19,7 @@ using Grpc.Core;
 
 namespace Dgraph.Transactions
 {
-    internal sealed class Transaction : TransactionBase, ITransaction
+    internal sealed class Transaction : Query, ITransaction
     {
         private bool HasMutated;
 

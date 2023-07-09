@@ -92,7 +92,7 @@ namespace Dgraph
         IQuery IDgraphClient.NewReadOnlyTransaction(bool bestEffort)
         {
             AssertNotDisposed();
-            return new ReadOnlyTransaction(this, bestEffort);
+            return new Query(this, true, bestEffort);
         }
 
         #endregion

@@ -20,7 +20,7 @@ using static Dgraph.Api.Request.Types;
 
 namespace Dgraph.Transactions
 {
-    internal abstract class TransactionBase : IQuery
+    internal class Query : IQuery
     {
         TransactionState IQuery.TransactionState => TransactionState;
         protected internal TransactionState TransactionState;
@@ -29,7 +29,7 @@ namespace Dgraph.Transactions
         protected internal readonly bool ReadOnly;
         protected internal readonly bool BestEffort;
 
-        protected internal TransactionBase(IDgraphClientInternal client, bool readOnly, bool bestEffort)
+        protected internal Query(IDgraphClientInternal client, bool readOnly, bool bestEffort)
         {
             Client = client;
             ReadOnly = readOnly;
