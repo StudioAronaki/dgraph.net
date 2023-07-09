@@ -18,7 +18,7 @@ on:
 
 defaults:
   run:
-    working_directory: ./Dgraph.tests.e2e
+    working-directory: ./Dgraph.tests.e2e
 
 jobs:
   build:
