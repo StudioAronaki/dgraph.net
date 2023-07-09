@@ -38,9 +38,9 @@ jobs:
 
     - name: Spin up Dgraph 
       run: |
-        mkdir ./dgraph_data
+        mkdir dgraph_data
         docker pull dgraph/standalone:latest
-        docker run --name dgraph -d -p "9080:9080" -v ./dgraph_data:/dgraph dgraph/standalone:latest
+        docker run --name dgraph -d -p "9080:9080" -v dgraph_data:/dgraph dgraph/standalone:latest
 
     - name: Test
       run: dotnet run --no-restore --verbosity normal
