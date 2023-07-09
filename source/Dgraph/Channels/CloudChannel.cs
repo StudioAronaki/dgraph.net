@@ -44,7 +44,7 @@ namespace Dgraph
             {
                 grpcUri = $"https://{grpcUri}";
             }
-            if (Uri.TryCreate(grpcUri, UriKind.Absolute, out Uri? u) && u.Host.Contains("."))
+            if (Uri.TryCreate(grpcUri, UriKind.Absolute, out Uri u) && u.Host.Contains("."))
             {
                 if (u.Host.Contains(".grpc."))
                 {
