@@ -1,4 +1,4 @@
-name: ci-dgraph-net-tests
+name: ci-dgraph-e2e-net-tests
 
 on:
   push:
@@ -16,14 +16,14 @@ on:
     - dev
   workflow_dispatch:
 
+defaults:
+  run:
+    working_directory: ./Dgraph.tests.e2e
+
 jobs:
   build:
 
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working_directory: ./Dgraph.tests.e2e
 
     steps:
     - name: Checkout repository
