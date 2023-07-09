@@ -21,6 +21,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working_directory: ./Dgraph.tests.e2e
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v3
