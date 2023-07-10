@@ -35,22 +35,25 @@ Install using nuget:
 
 ```sh
 dotnet add package Dgraph
-# or
-dotnet add package Dgraph --version 23.0.0
 ```
 
 >WARNING: Be aware that there may be other .NET packages with similar names. To verify the official package, please visit https://www.nuget.org/packages/Dgraph. Make sure you are using the correct and official package to avoid potential confusion.
 
 
-## Supported Versions
+## Supported 
 
-// TODO
+Depending on the version of Dgraph that you are connecting to, you will have to use a different version of this client.
+
+|  Dgraph version  |  Dgraph.net version  |
+| ---------------- | -------------------- |
+|  dgraph 21.X.Y   |  Dgraph.net 21.3.1.2 |
+|  dgraph 23.X.Y   |  Dgraph.net 23.0.0   |
 
 ## Using a Client
 
 ### Creating a Client
 
-An `IDgraphClient` can be created with a list of `GrpcChannel` objects. Connecting to multiple Dgraph servers in the same cluster allows for better distribution of workload.
+An `IDgraphClient` can be created with a list of `GrpcChannel` as objects. Connecting to multiple Dgraph servers in the same cluster allows for better distribution of workload.
 
 The following code snippet shows just one connection.
 
@@ -99,9 +102,9 @@ if (response.IsFailed) {
 
 ### Connecting To Dgraph Cloud
 
-Use `DgraphCloudChannel.Create(ENDPOINT, API_KEY)` to create a GrpcChannel that connects to a Dgraph Cloud backend.
+Use `DgraphCloudChannel.Create` to create a GrpcChannel that connects to a Dgraph Cloud backend.
 
-`DgraphCloudChannel.Create()` can accept GraphQL or gRPC URIs from [Dgraph Cloud](https://cloud.dgraph.io/), but it will always connect via gRPC.
+`DgraphCloudChannel.Create` can accept GraphQL or gRPC URIs from [Dgraph Cloud](https://cloud.dgraph.io/), but it will always connect via gRPC.
 
 ```c#
 using Dgraph;
@@ -125,7 +128,7 @@ using Dgraph;
 var operation = new Api.Operation {
     Schema = "name: string @index(exact) ."
 };
-var response = dgraphClient.Alter(operation);
+var response = await dgraphClient.Alter(operation);
 if (response.IsFailed) {
     // Handle errors
 }
@@ -141,7 +144,7 @@ var operation = new Api.Operation {
     Schema = "name: string @index(exact) .",
     RunInBackground = true
 };
-var response = dgraphClient.Alter(operation);
+var response = await dgraphClient.Alter(operation);
 if (response.IsFailed) {
     // Handle errors
 }
@@ -165,7 +168,7 @@ if (response.IsFailed) {
 }
 ```
 
-Read-only transactions can be created by calling the `IDgraphClient.NewReadOnlyTransaction()` method. Read-only transactions are useful to increase read speed because they can circumvent the usual consensus protocol. Read-only transactions cannot contain mutations. There is nothing to dispose for a `ReadOnlyTransaction` object, so it does not implement `IDisposable`.
+Read-only transactions can be created by calling the `IDgraphClient.NewReadOnlyTransaction` method. Read-only transactions are useful to increase read speed because they can circumvent the usual consensus protocol. Read-only transactions cannot contain mutations. There is nothing to dispose for a `ReadOnlyTransaction` object, so it does not implement `IDisposable`.
 ```c#
 var readOnlyTransaction = dgraphClient.NewReadOnlyTransaction();
 var response = await readOnlyTransaction.Query(...);
@@ -176,7 +179,7 @@ if (response.IsFailed) {
 
 ### Running a Mutation
 
-`ITransaction.Mutate(mutation)` runs a mutation. It takes a `Dgraph.Api.Mutation` or a `MutationBuilder`. You can set the data using JSON or RDF N-Quad format.
+`ITransaction.Mutate` runs a mutation. It takes a `Dgraph.Api.Mutation` or a `MutationBuilder`. You can set the data using JSON or RDF N-Quad format.
 
 To use JSON, use the fields `SetJson` and `DeleteJson`, which accept a string representing the nodes to be added or removed respectively (either as a JSON map or a list). You can use any library to serialize objects to a JSON string, such as [JSON.NET](https://www.newtonsoft.com/json).
 
@@ -197,13 +200,13 @@ if (response.IsFailed) {
 }
 ```
 
-If you want to commit a mutation without querying anything further, use `MutationBuilder.CommitNow()` to indicate that the transaction must be immediately committed.
+If you want to commit a mutation without querying anything further, use `MutationBuilder.CommitNow` to indicate that the transaction must be immediately committed.
 
 ```c#
 var mutation = new MutationBuilder().SetJson("...").CommitNow();
 ```
 
-Multiple mutations can be run in a single request using `ITransaction.Do(req)` and `RequestBuilder`. To immediately commit the request, use `RequestBuilder.CommitNow()`.
+Multiple mutations can be run in a single request using `ITransaction.Do` and `RequestBuilder`. To immediately commit the request, use `RequestBuilder.CommitNow`.
 
 ```c#
 using Dgraph;
@@ -220,13 +223,13 @@ if (response.IsFailed) {
 }
 ```
 
-Keep in mind that if you do not use `RequestBuilder.CommitNow()` or `MutationBuilder.CommitNow()`, you will still need to manually commit the transaction using `ITransaction.Commit()`.
+Keep in mind that if you do not use `RequestBuilder.CommitNow` or `MutationBuilder.CommitNow`, you will still need to manually commit the transaction using `ITransaction.Commit`.
 
 Check out the example in `source/Dgraph.tests.e2e/TransactionTest.cs`.
 
 ### Running a Query
 
-You can run a query by calling `ITransaction.Query(query)`. You will need to pass in a DQL query string. If you want to pass an additional map of any variables that you might want to set in the query, call `ITransaction.QueryWithVars(query, varMap)` with the variables dictionary as the second argument.
+You can run a query by calling `ITransaction.Query`. You will need to pass in a DQL query string. If you want to pass an additional map of any variables that you might want to set in the query, call `ITransaction.QueryWithVars` with the variables dictionary as the second argument.
 
 Let’s run the following query with a variable $a:
 
@@ -244,7 +247,7 @@ if (response.IsFailed) {
 }
 ```
 
-You can also use `ITransaction.Do()` to run a query.
+You can also use `ITransaction.Do` to run a query.
 
 ```c#
 var query = @"
@@ -283,7 +286,7 @@ if (response.IsSuccess) {
 
 ### Query with RDF response
 
-You can get query results as a RDF response by calling `ITransaction.QueryRdf()`. The `Rdf` field in the response has the encoded RDF result.
+You can get query results as a RDF response by calling `ITransaction.QueryRdf`. The `Rdf` field in the response has the encoded RDF result.
 
 **Note:** If you are querying for only `uid` values, use a JSON format response.
 
@@ -304,7 +307,7 @@ if (response.IsSuccess) {
 }
 ```
 
-`ITransaction.QueryRDFWithVars()` is also available when you need to pass values for variables used in the query.
+`ITransaction.QueryRDFWithVars` is also available when you need to pass values for variables used in the query.
 
 ### Running an Upsert: Query + Mutation
 
