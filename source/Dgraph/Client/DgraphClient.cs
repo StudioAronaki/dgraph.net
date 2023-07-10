@@ -35,15 +35,19 @@ namespace Dgraph
         }
 
         private readonly List<Api.Dgraph.DgraphClient> dgraphs;
+        private readonly GrpcChannel[] channels;
 
         private DgraphClient(params GrpcChannel[] channels)
         {
-            dgraphs = new List<Api.Dgraph.DgraphClient>();
+            this.channels = channels;
+            this.dgraphs = new List<Api.Dgraph.DgraphClient>();
             foreach (var chan in channels)
             {
-                dgraphs.Add(new Api.Dgraph.DgraphClient(chan));
+                this.dgraphs.Add(new Api.Dgraph.DgraphClient(chan));
             }
         }
+
+        #region IDgraphClient 
 
         Task<Result> IDgraphClient.LoginIntoNamespace(string user, string password, ulong ns, CallOptions? options)
         {
@@ -74,14 +78,17 @@ namespace Dgraph
             );
         }
 
-
-
-        // 
-        // ------------------------------------------------------
-        //              Transactions
-        // ------------------------------------------------------
-        //
-        #region transactions
+        Task<Result<string>> IDgraphClient.CheckVersion(CallOptions? options)
+        {
+            return DgraphExecute(
+                async (dg) =>
+                {
+                    var versionResult = await dg.CheckVersionAsync(new Check(), options ?? new CallOptions());
+                    return Result.Ok<string>(versionResult.Tag); ;
+                },
+                (rpcEx) => Result.Fail<string>(new ExceptionalError(rpcEx))
+            );
+        }
 
         ITransaction IDgraphClient.NewTransaction()
         {
@@ -97,11 +104,6 @@ namespace Dgraph
 
         #endregion
 
-        // 
-        // ------------------------------------------------------
-        //              Execution
-        // ------------------------------------------------------
-        //
         #region execution
 
         private int NextConnection = 0;
@@ -112,24 +114,11 @@ namespace Dgraph
             return next;
         }
 
-        public async Task<Result<string>> CheckVersion(CallOptions? options = null)
-        {
-            return await DgraphExecute(
-                async (dg) =>
-                {
-                    var versionResult = await dg.CheckVersionAsync(new Check(), options ?? new CallOptions());
-                    return Result.Ok<string>(versionResult.Tag); ;
-                },
-                (rpcEx) => Result.Fail<string>(new ExceptionalError(rpcEx))
-            );
-        }
-
         public async Task<T> DgraphExecute<T>(
             Func<Api.Dgraph.DgraphClient, Task<T>> execute,
             Func<RpcException, T> onFail
         )
         {
-
             AssertNotDisposed();
 
             try
@@ -144,26 +133,9 @@ namespace Dgraph
 
         #endregion
 
-        // 
-        // ------------------------------------------------------
-        //              Disposable Pattern
-        // ------------------------------------------------------
-        //
-        #region disposable pattern
+        #region IDisposable
 
-        // see disposable pattern at : https://docs.microsoft.com/en-us/dotnet/standard/design-guidelines/dispose-pattern
-        // and http://reedcopsey.com/tag/idisposable/
-        //
-        // Trying to follow the rules here 
-        // https://blog.stephencleary.com/2009/08/second-rule-of-implementing-idisposable.html
-        // for all the dgraph dispose bits
-        //
-        // For this class, it has only managed IDisposable resources, so it just needs to call the Dispose()
-        // of those resources.  It's safe to have nothing else, because IDisposable.Dispose() must be safe to call
-        // multiple times.  Also don't need a finalizer.  So this simplifies the general pattern, which isn't needed here.
-
-        bool disposed; // = false;
-        protected bool Disposed => disposed;
+        private bool Disposed = false;
 
         protected void AssertNotDisposed()
         {
@@ -182,12 +154,10 @@ namespace Dgraph
         {
             if (!Disposed)
             {
-                this.disposed = true;
-                foreach (var dgraph in dgraphs)
+                this.Disposed = true;
+                foreach (var channel in this.channels)
                 {
-                    // FIXME:
-                    // can't get to the chans??
-                    // dgraph. Dispose();
+                    channel.Dispose();
                 }
             }
         }
