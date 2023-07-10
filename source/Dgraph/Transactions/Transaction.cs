@@ -19,7 +19,7 @@ using Grpc.Core;
 
 namespace Dgraph.Transactions
 {
-    internal sealed class Transaction : ITransaction
+    internal class Transaction : ITransaction
     {
         TransactionState IQuery.TransactionState => TransactionState;
         private TransactionState TransactionState;

@@ -84,13 +84,13 @@ namespace Dgraph.Transactions
         /// Discard the transaction. Any effects are discarded from Dgraph
         /// and the transaction can't be used again.
         /// </summary>
-        Task<FluentResults.Result> Discard(CallOptions? options = null);
+        Task<Result> Discard(CallOptions? options = null);
 
         /// <summary>
         /// Commit the transaction. IF successful, any mutations in this
         /// transaction are committed in Dgraph. The transaction can't be 
         /// used again after a call to Commit.
         /// </summary>
-        Task<FluentResults.Result> Commit(CallOptions? options = null);
+        Task<Result> Commit(CallOptions? options = null);
     }
 }

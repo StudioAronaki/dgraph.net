@@ -26,6 +26,5 @@ namespace DgraphExample
             Console.WriteLine(result);
 
         }
-
     }
 }

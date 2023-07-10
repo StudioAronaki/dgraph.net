@@ -70,6 +70,6 @@ namespace Dgraph
         /// <summary>
         /// Returns the Dgraph version string.
         /// </summary>
-        Task<FluentResults.Result<string>> CheckVersion(CallOptions? options = null);
+        Task<Result<string>> CheckVersion(CallOptions? options = null);
     }
 }
