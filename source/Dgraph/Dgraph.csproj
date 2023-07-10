@@ -18,6 +18,7 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageVersion>23.0.0-alpha</PackageVersion>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
@@ -31,6 +32,7 @@
 
   <ItemGroup>
     <None Include="..\..\LICENSE.txt" Pack="true" PackagePath="$(PackageLicenseFile)" />
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     <Protobuf Include="github.com/dgraph-io/dgraph/protos/pb.proto" />
     <Protobuf Include="github.com/dgraph-io/dgo/protos/api.proto" />
     <Protobuf Include="github.com/dgraph-io/badger/pb/badger.proto" />
